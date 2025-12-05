@@ -123,14 +123,15 @@
                 response = string.Empty;
                 return;
             }
-
+            using var cts = new CancellationTokenSource();
             var aiResponse = await _kernel.InvokeAsync(
                 pluginName, 
                 "GenerateHash", 
                 new KernelArguments
                 {
                     ["input"] = input
-                }
+                },
+                cts.Token
             );
             response = aiResponse.GetValue<int>() == 0 ? "Nice" : "Naughty";
         }
