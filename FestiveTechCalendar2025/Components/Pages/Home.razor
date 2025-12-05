@@ -1,6 +1,8 @@
 ﻿@page "/"
 @using Microsoft.SemanticKernel
 @using System.ComponentModel
+@using System.Security.Cryptography
+@using System.Text
 @rendermode InteractiveServer
 
 <PageTitle>🎅 Are you on Santa's Naughty or Nice List? 🎄</PageTitle>
@@ -67,7 +69,11 @@
         try
         {
             using CancellationTokenSource cancellationToken = new();
-            var aiResponse = await _kernel.InvokePromptAsync($"You are a tool to help Santa identify if children have been naughty or nice. Has {childsName} been naughty or nice this year?", cancellationToken: cancellationToken.Token);
+            var aiResponse = await _kernel.InvokePromptAsync(
+                $"You are a tool to help Santa identify if children have been naughty or nice. " +
+                $"Has {childsName} been naughty or nice this year?",
+                cancellationToken: cancellationToken.Token
+            ); 
             response = aiResponse.GetValue<string>() ?? string.Empty;
         }
         finally { isLoading = false; }
@@ -80,7 +86,12 @@
         try
         {
             using CancellationTokenSource cancellationToken = new();
-            var aiResponse = await _kernel.InvokePromptAsync($"Given the following description, decide if the person is Naughty or Nice for Christmas. Respond only with 'Naughty' or 'Nice'. Description: {childsName}", cancellationToken: cancellationToken.Token);
+            var aiResponse = await _kernel.InvokePromptAsync(
+                $"Given the following description, decide if the person is Naughty or Nice for Christmas. " +
+                $"Respond only with 'Naughty' or 'Nice'. " +
+                $"Description: {childsName}",
+                cancellationToken: cancellationToken.Token
+            ); 
             response = aiResponse.GetValue<string>() ?? string.Empty;
         }
         finally { isLoading = false; }
@@ -92,13 +103,8 @@
         response = string.Empty;
         try
         {
-            var skPrompt = @"
-        {{$input}}
-        Given the above text decide if the person is Naughty or Nice.";
-            var summarize = _kernel.CreateFunctionFromPrompt(skPrompt);
-            using CancellationTokenSource cancellationToken = new();
-            var aiResponse = await _kernel.InvokeAsync(summarize, new() { ["input"] = childsName }, cancellationToken.Token);
-            response = aiResponse.GetValue<string>() ?? string.Empty;
+            var aiResponse = await _kernel.InvokeAsync("random", "GenerateRandom");
+            response = aiResponse.GetValue<int>() == 0 ? "Nice" : "Naughty";
         }
         finally { isLoading = false; }
     }
@@ -109,8 +115,35 @@
         response = string.Empty;
         try
         {
-            var aiResponse = await _kernel.InvokeAsync("random", "GenerateRandom");
-            response = aiResponse.GetValue<int>() == 0 ? "Nice" : "Naughty";
+            var input = (childsName ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(input))
+            {
+                response = string.Empty;
+                return;
+            }
+
+            using CancellationTokenSource cancellationToken = new();
+            var prompt = "You are Santa's assistant. Given the child's name or short description, " + 
+            "decide if they are Naughty or Nice for Christmas. Respond only with one word: Naughty or Nice. " +
+            "No punctuation, no explanation. Input: {{$input}}";
+            var classifyFunc = _kernel.CreateFunctionFromPrompt(prompt);
+            var aiResponse = await _kernel.InvokeAsync(classifyFunc, new() { ["input"] = input }, cancellationToken.Token);
+            var text = aiResponse.GetValue<string>()?.Trim();
+
+            // Normalize and enforce strict output
+            if (string.Equals(text, "naughty", StringComparison.OrdinalIgnoreCase))
+            {
+                response = "Naughty";
+            }
+            else if (string.Equals(text, "nice", StringComparison.OrdinalIgnoreCase))
+            {
+                response = "Nice";
+            }
+            else
+            {
+                // Fallback: default to Naughty to avoid leaking other content
+                response = "Naughty";
+            }
         }
         finally { isLoading = false; }
     }
