@@ -52,14 +52,14 @@
     private string response = string.Empty;
     private string childsName = string.Empty;
     private bool isLoading = false;
-    private string PluginName = "ExamplePlugin";
+    private string pluginName = "ExamplePlugin";
 
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
         {
             var rngPlugin = new ExamplePlugin();
-            _kernel.ImportPluginFromObject(rngPlugin, PluginName);
+            _kernel.ImportPluginFromObject(rngPlugin, pluginName);
         }
     }
 
@@ -125,7 +125,7 @@
                 return;
             }
 
-            var aiResponse = await _kernel.InvokeAsync(PluginName, "GenerateHash", new KernelArguments
+            var aiResponse = await _kernel.InvokeAsync(pluginName, "GenerateHash", new KernelArguments
             {
                 ["input"] = input
             });
