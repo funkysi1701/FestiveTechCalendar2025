@@ -1,20 +1,50 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+# FestiveTechCalendar2025
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+A Blazor Server app that uses Microsoft Semantic Kernel to decide if a name is on Santa's Naughty or Nice list. Includes a simple UI and example SK function calls.
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+## Features
+- Blazor Server with interactive components
+- Semantic Kernel prompt invocation
+- Example function `RandomNaughtyOrNice`
+- .NET 10 target
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+## Prerequisites
+- .NET SDK 10 (latest preview)
+- An LLM provider configured for Semantic Kernel (e.g., Azure OpenAI or OpenAI)
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+## Configuration
+- Update `appsettings.json` or `appsettings.local.json` with your model/provider settings and keys.
+- Typical settings include model name, endpoint, and API key.
+- Do not commit secrets; add local files to `.gitignore`.
+
+## Getting Started
+1. Clone the repository.
+2. Restore dependencies: `dotnet restore`.
+3. Configure SK provider in `appsettings.local.json`.
+4. Run the app: `dotnet run` (from the project directory).
+5. Open the app in a browser and enter a name to get a Naughty/Nice result.
+
+## Project Structure
+- `FestiveTechCalendar2025/Components/Pages/Home.razor` – UI and SK calls
+- `FestiveTechCalendar2025/Program.cs` – app setup and services
+- `FestiveTechCalendar2025/RandomNumberPlugin.cs` – sample plugin/functions
+
+## Development
+- Update or add Semantic Kernel functions for custom behaviors.
+- Use dependency injection to provide `Kernel` to components.
+
+## Build and Test
+- Build: `dotnet build`
+- Run: `dotnet run`
+- Add unit tests as needed under a test project.
+
+## CI/CD
+- See `azure-pipelines.yml` for pipeline configuration.
+
+## Contributing
+- Fork the repo and create feature branches.
+- Submit PRs with concise descriptions.
+- Follow existing code style and keep changes minimal.
+
+## License
+- See repository license file if present.
