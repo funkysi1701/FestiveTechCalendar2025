@@ -3,18 +3,45 @@
 @using System.ComponentModel
 @rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
+<PageTitle>🎅 Are you on Santa's Naughty or Nice List? 🎄</PageTitle>
 
-<h1>Are you on Santa's Naughty or Nice List?</h1>
+<div style="background: linear-gradient(135deg, #b30000 0%, #0b6f0b 100%); color: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.2); min-height: 95vh; display: flex; flex-direction: column; justify-content: center; overflow-anchor: none;">
+    <h1 style="text-align:center; font-weight:800; text-shadow: 2px 2px 0 #094;">
+        🎅 Are you on Santa's Naughty or Nice List? 🎄
+    </h1>
 
-<input type="text" @bind="childsName" />
+    <p style="text-align:center; font-size:1.1rem;">To determine if a child has been <strong>Naughty</strong> or <strong>Nice</strong> enter their name in the box below:</p>
 
-<button class="btn btn-primary" @onclick="async () => await AskQuestionv1()">Ask AI a Question v1</button>
-<button class="btn btn-primary" @onclick="async () => await AskQuestionv2()">Ask AI a Question v2</button>
-<button class="btn btn-primary" @onclick="async () => await AskQuestionv3()">Ask AI a Question v3</button>
-<button class="btn btn-primary" @onclick="async () => await AskQuestionv4()">Ask AI a Question v4</button>
+    <p style="text-align:center;"><input type="text" @bind="childsName" placeholder="Enter child's name" style="padding:0.5rem 0.75rem; border-radius:8px; border: 2px solid #fff; width: min(420px, 90%);" /></p>
 
-<p>@response</p>
+    <p style="display:flex; justify-content:center;">
+        <ul style="list-style: none; padding-left: 0; margin-left: 0;">
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="async () => await AskQuestionv1()" disabled="@isLoading">Ask AI a Question v1 🎁</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="async () => await AskQuestionv2()" disabled="@isLoading">Ask AI a Question v2 ❄️</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="async () => await AskQuestionv3()" disabled="@isLoading">Ask AI a Question v3 🎄</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="async () => await AskQuestionv4()" disabled="@isLoading">Ask AI a Question v4 🌟</button></li>
+        </ul>
+    </p>
+
+    @if (isLoading)
+    {
+        <div style="display:flex; justify-content:center; align-items:center; gap:12px; padding:0.75rem;">
+            <p style="text-align:center; font-size:1.2rem; padding:1rem; border-radius:10px; min-height: calc(1.2rem * 15);">
+                <span class="spinner">🎄</span><img src="christmas_tree.gif" alt="Loading animation" /><span class="spinner">🎄</span>
+                <span style="font-size:1.2rem;">Fetching Santa's verdict...</span>
+            </p>
+        </div>
+    }
+    else
+    {
+        <div style="display:flex; justify-content:center; align-items:center; gap:12px; padding:0.75rem;">
+            <p style="text-align:center; font-size:1.2rem; padding:1rem; border-radius:10px; min-height: calc(1.2rem * 15);">
+                @response
+            </p>
+        </div>
+    }
+
+</div>
 
 @code{
     [Inject] 
@@ -22,6 +49,7 @@
 
     private string response = string.Empty;
     private string childsName = string.Empty;
+    private bool isLoading = false;
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -34,48 +62,56 @@
 
     public async Task AskQuestionv1()
     {
+        isLoading = true;
         response = string.Empty;
-        using CancellationTokenSource cancellationToken = new();
-        var aiResponse = await _kernel.InvokePromptAsync($"You are a tool to help Santa identify if children have been naughty or nice. Has {childsName} been naughty or nice this year?", cancellationToken: cancellationToken.Token);
-
-        response = aiResponse.GetValue<string>() ?? string.Empty;
+        try
+        {
+            using CancellationTokenSource cancellationToken = new();
+            var aiResponse = await _kernel.InvokePromptAsync($"You are a tool to help Santa identify if children have been naughty or nice. Has {childsName} been naughty or nice this year?", cancellationToken: cancellationToken.Token);
+            response = aiResponse.GetValue<string>() ?? string.Empty;
+        }
+        finally { isLoading = false; }
     }
 
     public async Task AskQuestionv2()
     {
+        isLoading = true;
         response = string.Empty;
-        using CancellationTokenSource cancellationToken = new();
-        var aiResponse = await _kernel.InvokePromptAsync($"Given the following description, decide if the person is Naughty or Nice for Christmas. Respond only with 'Naughty' or 'Nice'. Description: {childsName}", cancellationToken: cancellationToken.Token);
-
-        response = aiResponse.GetValue<string>() ?? string.Empty;
+        try
+        {
+            using CancellationTokenSource cancellationToken = new();
+            var aiResponse = await _kernel.InvokePromptAsync($"Given the following description, decide if the person is Naughty or Nice for Christmas. Respond only with 'Naughty' or 'Nice'. Description: {childsName}", cancellationToken: cancellationToken.Token);
+            response = aiResponse.GetValue<string>() ?? string.Empty;
+        }
+        finally { isLoading = false; }
     }
 
     public async Task AskQuestionv3()
     {
+        isLoading = true;
         response = string.Empty;
-        var skPrompt = @"
+        try
+        {
+            var skPrompt = @"
         {{$input}}
         Given the above text decide if the person is Naughty or Nice.";
-        var summarize = _kernel.CreateFunctionFromPrompt(skPrompt);
-        using CancellationTokenSource cancellationToken = new();
-        var aiResponse = await _kernel.InvokeAsync(summarize, new() { ["input"] = childsName }, cancellationToken.Token);
-
-        response = aiResponse.GetValue<string>() ?? string.Empty;
+            var summarize = _kernel.CreateFunctionFromPrompt(skPrompt);
+            using CancellationTokenSource cancellationToken = new();
+            var aiResponse = await _kernel.InvokeAsync(summarize, new() { ["input"] = childsName }, cancellationToken.Token);
+            response = aiResponse.GetValue<string>() ?? string.Empty;
+        }
+        finally { isLoading = false; }
     }
 
     public async Task AskQuestionv4()
     {
+        isLoading = true;
         response = string.Empty;
-
-        var aiResponse = await _kernel.InvokeAsync("random", "GenerateRandom");
-
-        if (aiResponse.GetValue<int>() == 0)
+        try
         {
-            response = "Nice";
+            var aiResponse = await _kernel.InvokeAsync("random", "GenerateRandom");
+            response = aiResponse.GetValue<int>() == 0 ? "Nice" : "Naughty";
         }
-        else
-        {
-            response = "Naughty";
-        }
+        finally { isLoading = false; }
     }
 }
