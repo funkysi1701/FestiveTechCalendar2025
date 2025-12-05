@@ -1,6 +1,6 @@
 # FestiveTechCalendar2025
 
-A Blazor Server app that uses Microsoft Semantic Kernel to decide if a name is on Santa’s Naughty or Nice list. Includes a simple UI and example SK function calls.
+A Blazor Server app that uses Microsoft Semantic Kernel to decide if a name is on Santa's Naughty or Nice list. Includes a simple UI and example SK function calls.
 
 ## Features
 - Blazor Server with interactive components
@@ -25,9 +25,9 @@ A Blazor Server app that uses Microsoft Semantic Kernel to decide if a name is o
 5. Open the app in a browser and enter a name to get a Naughty/Nice result.
 
 ## Project Structure
-- `FestiveTechCalendar2025/Components/Pages/Home.razor` – UI and SK calls
-- `FestiveTechCalendar2025/Program.cs` – app setup and services
-- `FestiveTechCalendar2025/RandomNumberPlugin.cs` – sample plugin/functions
+- `FestiveTechCalendar2025/Components/Pages/Home.razor` â€“ UI and SK calls
+- `FestiveTechCalendar2025/Program.cs` â€“ app setup and services
+- `FestiveTechCalendar2025/RandomNumberPlugin.cs` â€“ sample plugin/functions
 
 ## Development
 - Update or add Semantic Kernel functions for custom behaviors.
