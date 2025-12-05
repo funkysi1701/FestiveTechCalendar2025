@@ -7,11 +7,11 @@ A Blazor Server app that uses Microsoft Semantic Kernel to decide if a name is o
 ## Features
 - Blazor Server with interactive components
 - Semantic Kernel prompt invocation
-- Example function `RandomNaughtyOrNice`
+- Example function `GenerateHash`
 - .NET 10 target
 
 ## Prerequisites
-- .NET SDK 10 (latest preview)
+- .NET SDK 10
 - An LLM provider configured for Semantic Kernel (e.g., Azure OpenAI or OpenAI)
 
 ## Configuration
@@ -29,7 +29,7 @@ A Blazor Server app that uses Microsoft Semantic Kernel to decide if a name is o
 ## Project Structure
 - `FestiveTechCalendar2025/Components/Pages/Home.razor` – UI and SK calls
 - `FestiveTechCalendar2025/Program.cs` – app setup and services
-- `FestiveTechCalendar2025/RandomNumberPlugin.cs` – sample plugin/functions
+- `FestiveTechCalendar2025/ExamplePlugin.cs` – sample plugin/functions
 
 ## Development
 - Update or add Semantic Kernel functions for custom behaviors.
