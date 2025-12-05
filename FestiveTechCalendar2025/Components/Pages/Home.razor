@@ -154,7 +154,14 @@
             "decide if they are Naughty or Nice for Christmas. Respond only with one word: Naughty or Nice. " +
             "No punctuation, no explanation. Input: {{$input}}";
             var classifyFunc = _kernel.CreateFunctionFromPrompt(prompt);
-            var aiResponse = await _kernel.InvokeAsync(classifyFunc, new() { ["input"] = input }, cancellationToken);
+            var aiResponse = await _kernel.InvokeAsync(
+                classifyFunc, 
+                new() 
+                { 
+                    ["input"] = input 
+                }, 
+                cancellationToken
+            );
             var text = aiResponse.GetValue<string>()?.Trim();
 
             // Normalize and enforce strict output
