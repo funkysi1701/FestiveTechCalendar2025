@@ -1,8 +1,5 @@
 ﻿@page "/"
 @using Microsoft.SemanticKernel
-@using System.ComponentModel
-@using System.Security.Cryptography
-@using System.Text
 @rendermode InteractiveServer
 
 <PageTitle>🎅 Are you on Santa's Naughty or Nice List? 🎄</PageTitle>
@@ -65,6 +62,7 @@
     public async Task AskQuestionv1()
     {
         isLoading = true;
+        await InvokeAsync(StateHasChanged);
         response = string.Empty;
         try
         {
@@ -83,12 +81,17 @@
             ); 
             response = aiResponse.GetValue<string>() ?? string.Empty;
         }
-        finally { isLoading = false; }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     public async Task AskQuestionv2()
     {
         isLoading = true;
+        await InvokeAsync(StateHasChanged);
         response = string.Empty;
         try
         {
@@ -108,12 +111,17 @@
             ); 
             response = aiResponse.GetValue<string>() ?? string.Empty;
         }
-        finally { isLoading = false; }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     public async Task AskQuestionv3()
     {
         isLoading = true;
+        await InvokeAsync(StateHasChanged);
         response = string.Empty;
         try
         {
@@ -123,24 +131,27 @@
                 response = string.Empty;
                 return;
             }
-            using var cts = new CancellationTokenSource();
             var aiResponse = await _kernel.InvokeAsync(
                 pluginName, 
                 "GenerateHash", 
                 new KernelArguments
                 {
                     ["input"] = input
-                },
-                cts.Token
+                }
             );
             response = aiResponse.GetValue<int>() == 0 ? "Nice" : "Naughty";
         }
-        finally { isLoading = false; }
+        finally 
+        { 
+            isLoading = false; 
+            await InvokeAsync(StateHasChanged); 
+        }
     }
 
     public async Task AskQuestionv4()
     {
         isLoading = true;
+        await InvokeAsync(StateHasChanged);
         response = string.Empty;
         try
         {
@@ -181,6 +192,10 @@
                 response = "Naughty";
             }
         }
-        finally { isLoading = false; }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 }
