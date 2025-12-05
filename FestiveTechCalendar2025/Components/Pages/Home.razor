@@ -18,10 +18,10 @@
 
     <div style="display:flex; justify-content:center;">
         <ul style="list-style: none; padding-left: 0; margin-left: 0;">
-            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="async () => await AskQuestionv1()" disabled="@isLoading">Naughty or Nice v1 🎁</button></li>
-            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="async () => await AskQuestionv2()" disabled="@isLoading">Naughty or Nice v2 ❄️</button></li>
-            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="async () => await AskQuestionv3()" disabled="@isLoading">Naughty or Nice v3 🎄</button></li>
-            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="async () => await AskQuestionv4()" disabled="@isLoading">Naughty or Nice v4 🌟</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="async () => await AskQuestionv1(cancellationToken.Token)" disabled="@isLoading">Naughty or Nice v1 🎁</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="async () => await AskQuestionv2(cancellationToken.Token)" disabled="@isLoading">Naughty or Nice v2 ❄️</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="async () => await AskQuestionv3(cancellationToken.Token)" disabled="@isLoading">Naughty or Nice v3 🎄</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="async () => await AskQuestionv4(cancellationToken.Token)" disabled="@isLoading">Naughty or Nice v4 🌟</button></li>
         </ul>
     </div>
 
@@ -48,7 +48,7 @@
 @code{
     [Inject] 
     private Kernel _kernel { get; set; } = default!;
-
+    private readonly CancellationTokenSource cancellationToken = new();
     private string response = string.Empty;
     private string childsName = string.Empty;
     private bool isLoading = false;
