@@ -16,14 +16,14 @@
 
     <p style="text-align:center;"><input type="text" @bind="childsName" placeholder="Enter child's name" style="padding:0.5rem 0.75rem; border-radius:8px; border: 2px solid #fff; width: min(420px, 90%);" /></p>
 
-    <p style="display:flex; justify-content:center;">
+    <div style="display:flex; justify-content:center;">
         <ul style="list-style: none; padding-left: 0; margin-left: 0;">
-            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="async () => await AskQuestionv1()" disabled="@isLoading">Naughty or Nice v1 🎁</button></li>
-            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="async () => await AskQuestionv2()" disabled="@isLoading">Naughty or Nice v2 ❄️</button></li>
-            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="async () => await AskQuestionv3()" disabled="@isLoading">Naughty or Nice v3 🎄</button></li>
-            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="async () => await AskQuestionv4()" disabled="@isLoading">Naughty or Nice v4 🌟</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="async () => await AskQuestionv1(cancellationToken.Token)" disabled="@isLoading">Naughty or Nice v1 🎁</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="async () => await AskQuestionv2(cancellationToken.Token)" disabled="@isLoading">Naughty or Nice v2 ❄️</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="async () => await AskQuestionv3(cancellationToken.Token)" disabled="@isLoading">Naughty or Nice v3 🎄</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="async () => await AskQuestionv4(cancellationToken.Token)" disabled="@isLoading">Naughty or Nice v4 🌟</button></li>
         </ul>
-    </p>
+    </div>
 
     @if (isLoading)
     {
@@ -48,7 +48,7 @@
 @code{
     [Inject] 
     private Kernel _kernel { get; set; } = default!;
-
+    private readonly CancellationTokenSource cancellationToken = new();
     private string response = string.Empty;
     private string childsName = string.Empty;
     private bool isLoading = false;
@@ -63,7 +63,7 @@
         }
     }
 
-    public async Task AskQuestionv1()
+    public async Task AskQuestionv1(CancellationToken cancellationToken = default)
     {
         isLoading = true;
         response = string.Empty;
@@ -76,18 +76,17 @@
                 return;
             }
 
-            using CancellationTokenSource cancellationToken = new();
             var aiResponse = await _kernel.InvokePromptAsync(
                 $"You are a tool to help Santa identify if children have been naughty or nice. " +
                 $"Has {input} been naughty or nice this year?",
-                cancellationToken: cancellationToken.Token
+                cancellationToken: cancellationToken
             ); 
             response = aiResponse.GetValue<string>() ?? string.Empty;
         }
         finally { isLoading = false; }
     }
 
-    public async Task AskQuestionv2()
+    public async Task AskQuestionv2(CancellationToken cancellationToken = default)
     {
         isLoading = true;
         response = string.Empty;
@@ -100,19 +99,18 @@
                 return;
             }
 
-            using CancellationTokenSource cancellationToken = new();
             var aiResponse = await _kernel.InvokePromptAsync(
                 $"Given the following description, decide if the person is Naughty or Nice for Christmas. " +
                 $"Respond only with 'Naughty' or 'Nice'. " +
                 $"Description: {input}",
-                cancellationToken: cancellationToken.Token
+                cancellationToken: cancellationToken
             ); 
             response = aiResponse.GetValue<string>() ?? string.Empty;
         }
         finally { isLoading = false; }
     }
 
-    public async Task AskQuestionv3()
+    public async Task AskQuestionv3(CancellationToken cancellationToken = default)
     {
         isLoading = true;
         response = string.Empty;
@@ -125,16 +123,21 @@
                 return;
             }
 
-            var aiResponse = await _kernel.InvokeAsync(pluginName, "GenerateHash", new KernelArguments
-            {
-                ["input"] = input
-            });
+            var aiResponse = await _kernel.InvokeAsync(
+                pluginName, 
+                "GenerateHash", 
+                new KernelArguments
+                {
+                    ["input"] = input
+                }, 
+                cancellationToken
+            );
             response = aiResponse.GetValue<int>() == 0 ? "Nice" : "Naughty";
         }
         finally { isLoading = false; }
     }
 
-    public async Task AskQuestionv4()
+    public async Task AskQuestionv4(CancellationToken cancellationToken = default)
     {
         isLoading = true;
         response = string.Empty;
@@ -147,12 +150,18 @@
                 return;
             }
 
-            using CancellationTokenSource cancellationToken = new();
             var prompt = "You are Santa's assistant. Given the child's name or short description, " + 
             "decide if they are Naughty or Nice for Christmas. Respond only with one word: Naughty or Nice. " +
             "No punctuation, no explanation. Input: {{$input}}";
             var classifyFunc = _kernel.CreateFunctionFromPrompt(prompt);
-            var aiResponse = await _kernel.InvokeAsync(classifyFunc, new() { ["input"] = input }, cancellationToken.Token);
+            var aiResponse = await _kernel.InvokeAsync(
+                classifyFunc, 
+                new() 
+                { 
+                    ["input"] = input 
+                }, 
+                cancellationToken
+            );
             var text = aiResponse.GetValue<string>()?.Trim();
 
             // Normalize and enforce strict output
