@@ -1,0 +1,194 @@
+---
+variables:
+  - group: Global
+  - name: CurrentDateTime
+    value: $(Get-Date -Format 'dd MMM yyyy')
+  - name: Build.Number.Major
+    value: 10
+  - name: Build.Number.Minor
+    value: 1
+  - name: Build.Number.Sub
+    value: 1    
+  - name: BuildNumber
+    value: $(Build.BuildNumber)
+  - name: BuildConfiguration
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      value: "Release"
+    ${{ if notIn(variables['Build.SourceBranchName'], 'main') }}:
+      value: "Debug"
+
+name: $(Build.Number.Major).$(Build.Number.Minor).$(Build.Number.Sub).$(Rev:r)
+pr:
+  autoCancel: true
+trigger:
+  batch: true
+  branches:
+    include:
+    - develop
+    - test
+    - main
+
+pool: Docker
+
+resources:
+  repositories:
+  - repository: DependabotRepository
+    type: git
+    name: My GitHub Projects/Dependabot
+    ref: main
+
+stages:
+  - stage: Build
+    dependsOn: []
+    jobs:
+      - job: AI_Code_Review
+        displayName: 'AI Code Review'
+        condition: and(succeeded(),eq(variables['Build.Reason'], 'PullRequest'))
+        dependsOn: [Build]
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+        - checkout: self
+          persistCredentials: true
+        - task: PRIA@2
+          inputs:
+            api_key: '$(OPENAI_API_KEY)'
+      - job: Build
+        steps:
+        - checkout: self
+          fetchDepth: 0
+          clean: true 
+          persistCredentials: true
+
+        - task: FileTransform@1
+          displayName: Update Config
+          inputs:
+            folderPath: '$(System.DefaultWorkingDirectory)/FestiveTechCalendar2025/'
+            fileType: 'json'
+            targetFiles: 'appsettings.json'
+
+        - task: UseDotNet@2
+          inputs:
+            packageType: 'sdk'
+            version: '10.x'
+            includePreviewVersions: true
+
+        - task: DotNetCoreCLI@2
+          displayName: "Restore"
+          inputs:
+            command: 'restore'
+            projects: 'FestiveTechCalendar2025.slnx'
+            arguments: '--configuration $(BuildConfiguration)'
+            feedsToUse: 'select'
+            vstsFeed: '2c2a6a60-448c-4153-a1be-d2ce39bfbb0d'
+
+        - task: DotNetCoreCLI@2
+          displayName: "Build"
+          inputs:
+            command: 'build'
+            projects: 'FestiveTechCalendar2025.slnx'
+            arguments: '--no-restore --configuration $(BuildConfiguration) --graph'
+
+        - task: DotNetCoreCLI@2
+          displayName: 'Publishing'
+          inputs:
+            command: 'publish'
+            projects: |
+              FestiveTechCalendar2025/FestiveTechCalendar2025.csproj
+            arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+            publishWebProjects: false
+
+        - task: PublishPipelineArtifact@1
+          displayName: 'Publishing API'
+          inputs:
+            targetPath: '$(Pipeline.Workspace)/a/'
+            artifact: 'FestiveTechCalendar2025'
+            publishLocation: 'pipeline'
+
+        - task: Bash@3
+          displayName: "Create git tag"
+          condition: eq(variables['Build.SourceBranchName'], 'main')
+          inputs:
+            targetType: "inline"
+            script: |
+              git config --global user.name "BuildService"
+              git config --global user.email "buildservice@pipeline.com"
+              git tag -a $(Build.BuildNumber) -m "Release"
+              git push --tags
+        - task: CmdLine@2
+          displayName: "Docker Build"
+          condition: and(succeeded(), in(variables['Build.SourceBranchName'], 'main', 'develop', 'test'))
+          inputs:
+            script: |
+              export DOCKER_BUILDKIT=1
+              docker build -t festivetechcalendar2025 . -f 'FestiveTechCalendar2025/Dockerfile'
+        - task: CmdLine@2
+          displayName: "Login"
+          condition: and(succeeded(), in(variables['Build.SourceBranchName'], 'main', 'develop', 'test'))
+          inputs:
+            script: |
+              echo $(acrPassword) | docker login funkysi1701.azurecr.io --username funkysi1701 --password-stdin
+        - bash: |
+            if [ "$(Build.SourceBranchName)" = "main" ]; then
+              echo "##vso[task.setvariable variable=imageRepoName]festivetechcalendar2025:$(Build.BuildNumber)-main"
+            elif [ "$(Build.SourceBranchName)" = "test" ]; then
+              echo "##vso[task.setvariable variable=imageRepoName]festivetechcalendar2025:$(Build.BuildNumber)-test"
+            elif [ "$(Build.SourceBranchName)" = "develop" ]; then
+              echo "##vso[task.setvariable variable=imageRepoName]festivetechcalendar2025:$(Build.BuildNumber)-develop"
+            fi
+          displayName: 'Set image repository name'
+        - task: CmdLine@2
+          displayName: "Publish to ACR"
+          condition: and(succeeded(), in(variables['Build.SourceBranchName'], 'main', 'develop', 'test'))
+          inputs:
+            script: |
+              docker tag festivetechcalendar2025 funkysi1701.azurecr.io/funkysi1701/$(imageRepoName)
+              docker push funkysi1701.azurecr.io/funkysi1701/$(imageRepoName)
+  - stage: VerifyHelm
+    dependsOn: Build
+    jobs:
+      - job: VerifyHelm
+        steps:
+        - task: Kubernetes@1
+          displayName: 'Kubernetes Login'
+          inputs:
+            connectionType: Kubernetes Service Connection
+            kubernetesServiceEndpoint: kubernetes
+            command: 'login'     
+        - script: |
+            helm lint Helm/festivetechcalendar2025 --namespace develop
+            helm lint Helm/festivetechcalendar2025 --namespace test
+            helm lint Helm/festivetechcalendar2025 --namespace main
+  - stage: Deploy
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'develop'))
+    dependsOn: VerifyHelm
+    jobs:
+      - template: deploy-helm.yml
+        parameters:
+          envName: 'develop'
+          namespace: 'develop'
+          variableGroup: 'PromotionDevAPI'
+          configPath: 'configuration.develop'
+          imageTag: '$(Build.BuildNumber)-develop'
+  - stage: DeployTest
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'test'))
+    dependsOn: VerifyHelm
+    jobs:
+      - template: deploy-helm.yml
+        parameters:
+          envName: 'test'
+          namespace: 'test'
+          variableGroup: 'PromotionTestAPI'
+          configPath: 'configuration.test'
+          imageTag: '$(Build.BuildNumber)-test'
+  - stage: DeployProd
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
+    dependsOn: VerifyHelm
+    jobs:
+      - template: deploy-helm.yml
+        parameters:
+          envName: 'main'
+          namespace: 'main'
+          variableGroup: 'PromotionProdAPI'
+          configPath: 'configuration.main'
+          imageTag: '$(Build.BuildNumber)-main'

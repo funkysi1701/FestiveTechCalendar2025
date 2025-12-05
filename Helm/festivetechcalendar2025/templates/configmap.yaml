@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "festivetechcalendar2025.fullname" . }}-config
+  labels:
+    {{- include "festivetechcalendar2025.labels" . | nindent 4 }}
+data:
+  {{- $cfg := index .Values.configuration .Release.Namespace }}
+  # OpenAI
+  OpenAI_Model: "{{ $cfg.OpenAI.Model }}"
+  OpenAI_Key: "{{ $cfg.OpenAI.Key }}"

@@ -1,0 +1,36 @@
+parameters:
+  - name: envName
+    type: string
+  - name: namespace
+    type: string
+  - name: variableGroup
+    type: string
+  - name: configPath
+    type: string
+  - name: imageTag
+    type: string
+
+jobs:
+- job: Deploy
+  variables:
+    - group: ${{ parameters.variableGroup }}
+  steps:
+    - task: Kubernetes@1
+      displayName: 'Kubernetes Login'
+      inputs:
+        connectionType: Kubernetes Service Connection
+        kubernetesServiceEndpoint: kubernetes
+        command: 'login'
+    - script: |
+        echo "configuration:" > custom-values.yaml
+        echo "  ${{ parameters.envName }}:" >> custom-values.yaml
+        echo "    OpenAI:" >> custom-values.yaml
+        echo "      Key: \"$(OpenAI.Key)\"" >> custom-values.yaml
+
+        helm upgrade --install festivetechcalendar2025 ./Helm/festivetechcalendar2025 \
+        --namespace ${{ parameters.namespace }} \
+        --set image.tag=${{ parameters.imageTag }} \
+        --values custom-values.yaml
+
+        rm -f custom-values.yaml
+      displayName: 'helm upgrade festivetechcalendar2025 ${{ parameters.envName }}'

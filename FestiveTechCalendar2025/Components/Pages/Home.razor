@@ -1,0 +1,81 @@
+﻿@page "/"
+@using Microsoft.SemanticKernel
+@using System.ComponentModel
+@rendermode InteractiveServer
+
+<PageTitle>Home</PageTitle>
+
+<h1>Are you on Santa's Naughty or Nice List?</h1>
+
+<input type="text" @bind="childsName" />
+
+<button class="btn btn-primary" @onclick="async () => await AskQuestionv1()">Ask AI a Question v1</button>
+<button class="btn btn-primary" @onclick="async () => await AskQuestionv2()">Ask AI a Question v2</button>
+<button class="btn btn-primary" @onclick="async () => await AskQuestionv3()">Ask AI a Question v3</button>
+<button class="btn btn-primary" @onclick="async () => await AskQuestionv4()">Ask AI a Question v4</button>
+
+<p>@response</p>
+
+@code{
+    [Inject] 
+    private Kernel _kernel { get; set; } = default!;
+
+    private string response = string.Empty;
+    private string childsName = string.Empty;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var rngPlugin = new RandomNumberPlugin();
+            _kernel.ImportPluginFromObject(rngPlugin, "random");
+        }
+    }
+
+    public async Task AskQuestionv1()
+    {
+        response = string.Empty;
+        using CancellationTokenSource cancellationToken = new();
+        var aiResponse = await _kernel.InvokePromptAsync($"You are a tool to help Santa identify if children have been naughty or nice. Has {childsName} been naughty or nice this year?", cancellationToken: cancellationToken.Token);
+
+        response = aiResponse.GetValue<string>() ?? string.Empty;
+    }
+
+    public async Task AskQuestionv2()
+    {
+        response = string.Empty;
+        using CancellationTokenSource cancellationToken = new();
+        var aiResponse = await _kernel.InvokePromptAsync($"Given the following description, decide if the person is Naughty or Nice for Christmas. Respond only with 'Naughty' or 'Nice'. Description: {childsName}", cancellationToken: cancellationToken.Token);
+
+        response = aiResponse.GetValue<string>() ?? string.Empty;
+    }
+
+    public async Task AskQuestionv3()
+    {
+        response = string.Empty;
+        var skPrompt = @"
+        {{$input}}
+        Given the above text decide if the person is Naughty or Nice.";
+        var summarize = _kernel.CreateFunctionFromPrompt(skPrompt);
+        using CancellationTokenSource cancellationToken = new();
+        var aiResponse = await _kernel.InvokeAsync(summarize, new() { ["input"] = childsName }, cancellationToken.Token);
+
+        response = aiResponse.GetValue<string>() ?? string.Empty;
+    }
+
+    public async Task AskQuestionv4()
+    {
+        response = string.Empty;
+
+        var aiResponse = await _kernel.InvokeAsync("random", "GenerateRandom");
+
+        if (aiResponse.GetValue<int>() == 0)
+        {
+            response = "Nice";
+        }
+        else
+        {
+            response = "Naughty";
+        }
+    }
+}
