@@ -52,13 +52,14 @@
     private string response = string.Empty;
     private string childsName = string.Empty;
     private bool isLoading = false;
+    private string PluginName = "ExamplePlugin";
 
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
         {
-            var rngPlugin = new RandomNumberPlugin();
-            _kernel.ImportPluginFromObject(rngPlugin, "random");
+            var rngPlugin = new ExamplePlugin();
+            _kernel.ImportPluginFromObject(rngPlugin, PluginName);
         }
     }
 
@@ -124,7 +125,10 @@
                 return;
             }
 
-            var aiResponse = await _kernel.InvokeAsync("random", "GenerateRandom");
+            var aiResponse = await _kernel.InvokeAsync(PluginName, "GenerateHash", new KernelArguments
+            {
+                ["input"] = input
+            });
             response = aiResponse.GetValue<int>() == 0 ? "Nice" : "Naughty";
         }
         finally { isLoading = false; }
