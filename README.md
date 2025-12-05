@@ -1,5 +1,7 @@
 # FestiveTechCalendar2025
 
+This is an example project for the [2025 Festive Tech Calendar](https://festivetechcalendar.com/). The blog post can be found here [https://www.funkysi1701.com/posts/2025/festive-naughty-or-nice-checker/](https://www.funkysi1701.com/posts/2025/festive-naughty-or-nice-checker/)
+
 A Blazor Server app that uses Microsoft Semantic Kernel to decide if a name is on Santa's Naughty or Nice list. Includes a simple UI and example SK function calls.
 
 ## Features
