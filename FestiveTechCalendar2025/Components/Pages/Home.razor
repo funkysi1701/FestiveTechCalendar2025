@@ -68,10 +68,17 @@
         response = string.Empty;
         try
         {
+            var input = (childsName ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(input))
+            {
+                response = string.Empty;
+                return;
+            }
+
             using CancellationTokenSource cancellationToken = new();
             var aiResponse = await _kernel.InvokePromptAsync(
                 $"You are a tool to help Santa identify if children have been naughty or nice. " +
-                $"Has {childsName} been naughty or nice this year?",
+                $"Has {input} been naughty or nice this year?",
                 cancellationToken: cancellationToken.Token
             ); 
             response = aiResponse.GetValue<string>() ?? string.Empty;
@@ -85,11 +92,18 @@
         response = string.Empty;
         try
         {
+            var input = (childsName ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(input))
+            {
+                response = string.Empty;
+                return;
+            }
+
             using CancellationTokenSource cancellationToken = new();
             var aiResponse = await _kernel.InvokePromptAsync(
                 $"Given the following description, decide if the person is Naughty or Nice for Christmas. " +
                 $"Respond only with 'Naughty' or 'Nice'. " +
-                $"Description: {childsName}",
+                $"Description: {input}",
                 cancellationToken: cancellationToken.Token
             ); 
             response = aiResponse.GetValue<string>() ?? string.Empty;
