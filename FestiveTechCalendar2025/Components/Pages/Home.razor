@@ -69,11 +69,10 @@
             var input = (childsName ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(input))
             {
-                response = string.Empty;
                 return;
             }
 
-            using var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var aiResponse = await _kernel.InvokePromptAsync(
                 $"You are a tool to help Santa identify if children have been naughty or nice. " +
                 $"Has {input} been naughty or nice this year?",
@@ -98,11 +97,10 @@
             var input = (childsName ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(input))
             {
-                response = string.Empty;
                 return;
             }
 
-            using var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var aiResponse = await _kernel.InvokePromptAsync(
                 $"Given the following description, decide if the person is Naughty or Nice for Christmas. " +
                 $"Respond only with 'Naughty' or 'Nice'. " +
@@ -128,7 +126,6 @@
             var input = (childsName ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(input))
             {
-                response = string.Empty;
                 return;
             }
             var aiResponse = await _kernel.InvokeAsync(
@@ -158,11 +155,10 @@
             var input = (childsName ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(input))
             {
-                response = string.Empty;
                 return;
             }
 
-            using var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var prompt = "You are Santa's assistant. Given the child's name or short description, " + 
             "decide if they are Naughty or Nice for Christmas. Respond only with one word: Naughty or Nice. " +
             "No punctuation, no explanation. Input: {{$input}}";
