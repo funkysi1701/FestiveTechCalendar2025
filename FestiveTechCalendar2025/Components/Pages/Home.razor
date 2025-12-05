@@ -15,10 +15,10 @@
 
     <div style="display:flex; justify-content:center;">
         <ul style="list-style: none; padding-left: 0; margin-left: 0;">
-            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="async () => await AskQuestionv1()" disabled="@isLoading">Naughty or Nice v1 🎁</button></li>
-            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="async () => await AskQuestionv2()" disabled="@isLoading">Naughty or Nice v2 ❄️</button></li>
-            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="async () => await AskQuestionv3()" disabled="@isLoading">Naughty or Nice v3 🎄</button></li>
-            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="async () => await AskQuestionv4()" disabled="@isLoading">Naughty or Nice v4 🌟</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="AskQuestionv1" disabled="@isLoading">Naughty or Nice v1 🎁</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="AskQuestionv2" disabled="@isLoading">Naughty or Nice v2 ❄️</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#b30000; border-color:#fff;" @onclick="AskQuestionv3" disabled="@isLoading">Naughty or Nice v3 🎄</button></li>
+            <li style="margin-bottom:12px;"><button type="button" class="btn btn-light" style="color:#0b6f0b; border-color:#fff;" @onclick="AskQuestionv4" disabled="@isLoading">Naughty or Nice v4 🌟</button></li>
         </ul>
     </div>
 
@@ -48,15 +48,12 @@
     private string response = string.Empty;
     private string childsName = string.Empty;
     private bool isLoading = false;
-    private string pluginName = "ExamplePlugin";
+    private string pluginName = nameof(ExamplePlugin);
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override void OnInitialized()
     {
-        if (firstRender)
-        {
-            var rngPlugin = new ExamplePlugin();
-            _kernel.ImportPluginFromObject(rngPlugin, pluginName);
-        }
+      var rngPlugin = new ExamplePlugin();
+      _kernel.ImportPluginFromObject(rngPlugin, pluginName);
     }
 
     public async Task AskQuestionv1()
@@ -66,7 +63,7 @@
         response = string.Empty;
         try
         {
-            var input = (childsName ?? string.Empty).Trim();
+            var input = (childsName).Trim();
             if (string.IsNullOrEmpty(input))
             {
                 return;
@@ -94,7 +91,7 @@
         response = string.Empty;
         try
         {
-            var input = (childsName ?? string.Empty).Trim();
+            var input = (childsName).Trim();
             if (string.IsNullOrEmpty(input))
             {
                 return;
@@ -123,7 +120,7 @@
         response = string.Empty;
         try
         {
-            var input = (childsName ?? string.Empty).Trim();
+            var input = (childsName).Trim();
             if (string.IsNullOrEmpty(input))
             {
                 return;
@@ -136,7 +133,7 @@
                     ["input"] = input
                 }
             );
-            response = aiResponse.GetValue<int>() == 0 ? "Nice" : "Naughty";
+            response = (aiResponse.GetValue<int?>() ?? 0) == 0 ? "Nice" : "Naughty";
         }
         finally 
         { 
@@ -152,7 +149,7 @@
         response = string.Empty;
         try
         {
-            var input = (childsName ?? string.Empty).Trim();
+            var input = (childsName).Trim();
             if (string.IsNullOrEmpty(input))
             {
                 return;
