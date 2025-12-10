@@ -125,9 +125,14 @@ stages:
         - task: CmdLine@2
           displayName: "Login"
           condition: and(succeeded(), in(variables['Build.SourceBranchName'], 'main', 'develop', 'test'))
+          env:
+            AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+            AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+            AWS_DEFAULT_REGION: $(AWS_REGION)
           inputs:
             script: |
-              echo $(acrPassword) | docker login funkysi1701.azurecr.io --username funkysi1701 --password-stdin
+              export PATH=$HOME/.local/bin:$PATH
+              aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(ContainerReg)
         - bash: |
             if [ "$(Build.SourceBranchName)" = "main" ]; then
               echo "##vso[task.setvariable variable=imageRepoName]festivetechcalendar2025:$(Build.BuildNumber)-main"
@@ -142,8 +147,8 @@ stages:
           condition: and(succeeded(), in(variables['Build.SourceBranchName'], 'main', 'develop', 'test'))
           inputs:
             script: |
-              docker tag festivetechcalendar2025 funkysi1701.azurecr.io/funkysi1701/$(imageRepoName)
-              docker push funkysi1701.azurecr.io/funkysi1701/$(imageRepoName)
+              docker tag festivetechcalendar2025 $(ContainerReg)/funkysi1701/$(imageRepoName)
+              docker push $(ContainerReg)/funkysi1701/$(imageRepoName)
   - stage: VerifyHelm
     dependsOn: Build
     jobs:
