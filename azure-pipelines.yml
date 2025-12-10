@@ -143,7 +143,7 @@ stages:
             fi
           displayName: 'Set image repository name'
         - task: CmdLine@2
-          displayName: "Publish to ACR"
+          displayName: "Publish to ECR"
           condition: and(succeeded(), in(variables['Build.SourceBranchName'], 'main', 'develop', 'test'))
           inputs:
             script: |
