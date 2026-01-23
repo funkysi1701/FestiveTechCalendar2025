@@ -19,8 +19,17 @@ jobs:
         with:
           fetch-depth: 0
           ref: test
+      - name: Check for commits between test and main
+        id: check_commits
+        run: |
+          if [ -z "$(git log main..test)" ]; then
+            echo "No commits between test and main. Skipping PR creation."
+            exit 0
+          fi
+      
       - name: create pull request
-        run: gh pr create -B main -H test --title 'Release ${{ steps.date.outputs.date }} Test to Main' --body 'Created by Github action' 
+        if: steps.check_commits.outcome == 'success'
+        run: gh pr create -B main -H test --title 'Release ${{ steps.date.outputs.date }} Test to Main' --body 'Created by Github action' \
           || gh pr edit -B main --title 'Release ${{ steps.date.outputs.date }} Test to Main' --body 'Created by Github action'
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
