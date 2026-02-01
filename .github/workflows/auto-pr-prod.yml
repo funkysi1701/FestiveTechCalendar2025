@@ -19,6 +19,8 @@ jobs:
         with:
           fetch-depth: 0
           ref: test
+          # Ensure all branches are available locally
+          fetch-tags: true
       - name: Check for commits between test and main
         id: check_commits
         run: |
